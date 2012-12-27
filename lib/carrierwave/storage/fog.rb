@@ -24,6 +24,7 @@ module CarrierWave
     # [:fog_public]                       (optional) public readability, defaults to true
     # [:fog_authenticated_url_expiration] (optional) time (in seconds) that authenticated urls
     #   will be valid, when fog_public is false and provider is AWS or Google, defaults to 600
+    # [:fog_use_ssl_for_aws]              (optional) #public_url will use https for the AWS generated URL]
     #
     #
     # AWS credentials contain the following keys:
@@ -285,12 +286,13 @@ module CarrierWave
             # AWS/Google optimized for speed over correctness
             case @uploader.fog_credentials[:provider]
             when 'AWS'
+              protocol = @uploader.fog_use_ssl_for_aws ? "https" : "http"
               # if directory is a valid subdomain, use that style for access
               if @uploader.fog_directory.to_s =~ /^(?:[a-z]|\d(?!\d{0,2}(?:\d{1,3}){3}$))(?:[a-z0-9\.]|(?![\-])|\-(?![\.])){1,61}[a-z0-9]$/
-                "https://#{@uploader.fog_directory}.s3.amazonaws.com/#{path}"
+                "#{protocol}://#{@uploader.fog_directory}.s3.amazonaws.com/#{path}"
               else
                 # directory is not a valid subdomain, so use path style for access
-                "https://s3.amazonaws.com/#{@uploader.fog_directory}/#{path}"
+                "#{protocol}://s3.amazonaws.com/#{@uploader.fog_directory}/#{path}"
               end
             when 'Google'
               "https://commondatastorage.googleapis.com/#{@uploader.fog_directory}/#{path}"
